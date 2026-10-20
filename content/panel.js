@@ -1,26 +1,35 @@
 /**
  * Content script per le pagine web:
- * 1) Rimuove immediatamente qualsiasi eventuale pannello/linguetta "Appunti" residuo da versioni precedenti.
+ * 1) Sostituisce eventuali istanze o nodi DOM di versioni precedenti (anche senza dover ricaricare la scheda).
  * 2) Ascolta la shortcut libera (es. Alt+A) per catturare il testo selezionato.
  * 3) Se attivo nelle impostazioni, mostra il popup essenziale ("Nota", input, Annulla / OK).
+ *    Le scritte dei pulsanti sono renderizzate via CSS content: attr(data-label) così Google Translate
+ *    non può tradurle in "arabo".
  */
 (function () {
   "use strict";
 
-  function cleanupLegacyInPageElements() {
-    const legacyHost = document.getElementById("appunti-firefox-plugin-host");
-    if (legacyHost) legacyHost.remove();
+  // Disattiva eventuali listener di versioni precedenti rimaste nella pagina
+  if (typeof window.__AppuntiCleanupPreviousInstance === "function") {
+    try {
+      window.__AppuntiCleanupPreviousInstance();
+    } catch (_) {}
+  }
 
-    const legacyStyle = document.getElementById("appunti-firefox-layout-style");
-    if (legacyStyle) legacyStyle.remove();
-
+  function cleanupLegacyDomElements() {
+    const idsToRemove = [
+      "appunti-firefox-plugin-host",
+      "appunti-firefox-layout-style",
+      "appunti-firefox-note-prompt"
+    ];
+    for (const id of idsToRemove) {
+      const el = document.getElementById(id);
+      if (el) el.remove();
+    }
     document.documentElement.style.removeProperty("margin-right");
   }
 
-  cleanupLegacyInPageElements();
-
-  if (window.__AppuntiCaptureV3Injected) return;
-  window.__AppuntiCaptureV3Injected = true;
+  cleanupLegacyDomElements();
 
   const DEFAULT_SETTINGS = {
     askBlockNote: false,
@@ -32,6 +41,16 @@
   let promptShadow = null;
   let activeCapturePayload = null;
   let isPromptOpen = false;
+  let destroyed = false;
+
+  function t(key, fallback) {
+    try {
+      const msg = browser.i18n.getMessage(key);
+      return msg || fallback;
+    } catch (_) {
+      return fallback;
+    }
+  }
 
   function eventToShortcutString(e) {
     const modifiers = [];
@@ -64,17 +83,11 @@
     return pressed.toLowerCase() === shortcutStr.trim().toLowerCase();
   }
 
-  function t(key, fallback) {
-    try {
-      const msg = browser.i18n.getMessage(key);
-      return msg || fallback;
-    } catch (_) {
-      return fallback;
-    }
-  }
-
   function ensurePromptDom() {
-    if (promptHost) return;
+    if (promptHost && document.documentElement.contains(promptHost)) return;
+
+    const existing = document.getElementById("appunti-firefox-note-prompt");
+    if (existing) existing.remove();
 
     promptHost = document.createElement("div");
     promptHost.id = "appunti-firefox-note-prompt";
@@ -84,6 +97,12 @@
       "all: initial; position: fixed; inset: 0; z-index: 2147483647; pointer-events: none;";
     promptShadow = promptHost.attachShadow({ mode: "open" });
 
+    const titleLabel = t("noteModalTitle", "Nota").replace(/"/g, "&quot;");
+    const cancelLabel = t("btnCancel", "Annulla").replace(/"/g, "&quot;");
+    const okLabel = t("btnOk", "OK").replace(/"/g, "&quot;");
+
+    // Usiamo ::before { content: attr(data-label) } per tutti i testi dell'interfaccia:
+    // in questo modo non esistono TextNode nel DOM e Google Translate non può alterarli!
     promptShadow.innerHTML = `
       <style>
         :host {
@@ -123,6 +142,9 @@
           font-weight: 700;
           color: #1f2937;
         }
+        .modal-header::before {
+          content: attr(data-label);
+        }
         .modal-body {
           padding: 10px 12px;
           display: flex;
@@ -159,6 +181,9 @@
           background: #ffffff;
           color: #374151;
         }
+        .btn::before {
+          content: attr(data-label);
+        }
         .btn-primary {
           background: #374151;
           border-color: #1f2937;
@@ -171,7 +196,7 @@
 
       <div class="backdrop notranslate" id="backdrop" translate="no">
         <div class="modal notranslate" role="dialog" aria-modal="true" translate="no">
-          <div class="modal-header">${t("noteModalTitle", "Note")}</div>
+          <div class="modal-header" data-label="${titleLabel}"></div>
           <div class="modal-body">
             <input
               type="text"
@@ -180,8 +205,8 @@
               autocomplete="off"
             />
             <div class="actions">
-              <button class="btn" id="cancelBtn" type="button">${t("btnCancel", "Cancel")}</button>
-              <button class="btn btn-primary" id="confirmBtn" type="button">${t("btnOk", "OK")}</button>
+              <button class="btn" id="cancelBtn" type="button" data-label="${cancelLabel}"></button>
+              <button class="btn btn-primary" id="confirmBtn" type="button" data-label="${okLabel}"></button>
             </div>
           </div>
         </div>
@@ -237,11 +262,17 @@
     });
   }
 
-  function startCaptureFlow() {
-    cleanupLegacyInPageElements();
+  async function startCaptureFlow() {
+    if (destroyed) return;
     if (!window.__AppuntiSelectionToMd) return;
     const extracted = window.__AppuntiSelectionToMd.extractPageSelection();
     if (!extracted) return;
+
+    // Legge sempre lo stato aggiornato direttamente dallo storage (così funziona subito anche se cambiato da poco)
+    try {
+      const fresh = await browser.storage.local.get(DEFAULT_SETTINGS);
+      settings = { ...DEFAULT_SETTINGS, ...fresh };
+    } catch (_) {}
 
     if (!settings.askBlockNote) {
       browser.runtime.sendMessage({
@@ -266,45 +297,55 @@
     }, 10);
   }
 
-  window.addEventListener(
-    "keydown",
-    (e) => {
-      if (isPromptOpen) return;
-      if (matchesShortcut(e, settings.customShortcut)) {
-        const sel = window.getSelection();
-        if (sel && !sel.isCollapsed && sel.toString().trim().length > 0) {
-          e.preventDefault();
-          e.stopPropagation();
-          startCaptureFlow();
-        }
+  function onWindowKeyDown(e) {
+    if (destroyed || isPromptOpen) return;
+    if (matchesShortcut(e, settings.customShortcut)) {
+      const sel = window.getSelection();
+      if (sel && !sel.isCollapsed && sel.toString().trim().length > 0) {
+        e.preventDefault();
+        e.stopPropagation();
+        startCaptureFlow();
       }
-    },
-    true
-  );
+    }
+  }
 
-  browser.runtime.onMessage.addListener((message) => {
-    if (!message || !message.type) return undefined;
+  window.addEventListener("keydown", onWindowKeyDown, true);
+
+  function onRuntimeMessage(message) {
+    if (destroyed || !message || !message.type) return undefined;
     if (message.type === "APPUNTI_START_CAPTURE_FLOW") {
       startCaptureFlow();
       return Promise.resolve({ ok: true });
     }
-    if (message.type === "APPUNTI_CLEANUP_LEGACY") {
-      cleanupLegacyInPageElements();
-      return Promise.resolve({ ok: true });
-    }
     return undefined;
-  });
+  }
 
-  browser.storage.onChanged.addListener((changes, area) => {
-    if (area !== "local") return;
+  browser.runtime.onMessage.addListener(onRuntimeMessage);
+
+  function onStorageChanged(changes, area) {
+    if (destroyed || area !== "local") return;
     for (const [key, change] of Object.entries(changes)) {
       if (key in settings) {
         settings[key] = change.newValue;
       }
     }
-  });
+  }
+
+  browser.storage.onChanged.addListener(onStorageChanged);
+
+  window.__AppuntiCleanupPreviousInstance = function () {
+    destroyed = true;
+    window.removeEventListener("keydown", onWindowKeyDown, true);
+    try {
+      browser.runtime.onMessage.removeListener(onRuntimeMessage);
+      browser.storage.onChanged.removeListener(onStorageChanged);
+    } catch (_) {}
+    cleanupLegacyDomElements();
+  };
 
   browser.storage.local.get(DEFAULT_SETTINGS).then((stored) => {
-    settings = { ...DEFAULT_SETTINGS, ...stored };
+    if (!destroyed) {
+      settings = { ...DEFAULT_SETTINGS, ...stored };
+    }
   });
 })();

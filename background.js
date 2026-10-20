@@ -45,24 +45,13 @@
     return { cleanNoteText, migratedSources: sources };
   }
 
-  async function cleanupAllOpenTabs() {
+  async function reinjectContentScriptsIntoOpenTabs() {
     try {
       const tabs = await browser.tabs.query({});
       for (const tab of tabs) {
-        if (!tab.id) continue;
-        browser.tabs
-          .executeScript(tab.id, {
-            code: `
-              (function() {
-                var h = document.getElementById("appunti-firefox-plugin-host");
-                if (h) h.remove();
-                var s = document.getElementById("appunti-firefox-layout-style");
-                if (s) s.remove();
-                document.documentElement.style.removeProperty("margin-right");
-              })();
-            `
-          })
-          .catch(() => {});
+        if (!tab.id || !tab.url || !/^https?:\/\//i.test(tab.url)) continue;
+        await browser.tabs.executeScript(tab.id, { file: "lib/selection-to-md.js" }).catch(() => {});
+        await browser.tabs.executeScript(tab.id, { file: "content/panel.js" }).catch(() => {});
       }
     } catch (_) {}
   }
@@ -82,7 +71,7 @@
     };
 
     await browser.storage.local.set(stateCache);
-    cleanupAllOpenTabs();
+    reinjectContentScriptsIntoOpenTabs();
   }
 
   initStorage();
