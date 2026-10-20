@@ -1,0 +1,57 @@
+{
+  "manifest_version": 2,
+  "name": "Appunti - Foglio Rapido",
+  "version": "1.1.0",
+  "description": "Prendi velocemente appunti nella Sidebar di Firefox. Seleziona testo e invialo con una shortcut nel foglio appunti, con fonti univoche in testa, conversione HTML -> Markdown e nota opzionale per ogni blocco.",
+  "homepage_url": "https://github.com/andreagosto/Appunti-Firefox-Plugin",
+  "icons": {
+    "48": "icons/icon.svg",
+    "96": "icons/icon.svg"
+  },
+  "permissions": [
+    "storage",
+    "activeTab",
+    "contextMenus",
+    "downloads",
+    "<all_urls>"
+  ],
+  "background": {
+    "scripts": ["background.js"]
+  },
+  "browser_action": {
+    "default_icon": "icons/icon.svg",
+    "default_title": "Apri/Chiudi Sidebar Appunti"
+  },
+  "sidebar_action": {
+    "default_title": "Appunti",
+    "default_panel": "sidebar/sidebar.html",
+    "default_icon": "icons/icon.svg"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": [
+        "lib/selection-to-md.js",
+        "content/panel.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "commands": {
+    "append-selection": {
+      "suggested_key": {
+        "default": "Alt+A"
+      },
+      "description": "Invia il testo selezionato agli appunti"
+    }
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "appunti-firefox-plugin@andreagosto.github.io",
+      "strict_min_version": "109.0",
+      "data_collection_permissions": {
+        "required": ["none"]
+      }
+    }
+  }
+}

@@ -1,0 +1,9 @@
+# Pacchetti estensione e build
+*.zip
+*.xpi
+web-ext-artifacts/
+
+# File locali / IDE / OS
+.DS_Store
+Thumbs.db
+AGENTS.md

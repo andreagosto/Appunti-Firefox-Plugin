@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <title>Appunti</title>
+  <link rel="stylesheet" href="sidebar.css" />
+</head>
+<body>
+  <!-- Sezione Fonti univoche: ogni fonte su una sola riga con href troncato e background che stacca dal body -->
+  <section class="sources-section" id="sourcesSection" aria-label="Fonti univoche">
+    <div class="sources-list" id="sourcesList"></div>
+  </section>
+
+  <main class="editor-container">
+    <div
+      id="noteEditor"
+      class="note-editor"
+      contenteditable="true"
+      data-placeholder="Foglio bianco per i tuoi appunti...&#10;&#10;• Seleziona testo sul sito e premi Alt+A (o la tua shortcut libera) per aggiungerlo in fondo.&#10;• Fai doppio click su qualsiasi blocco incollato per aggiungere o modificare una nota."
+      spellcheck="false"
+    ></div>
+    <div class="toast" id="toastMsg">Aggiunto!</div>
+  </main>
+
+  <!-- Popup leggero per inserire/modificare la nota (attivato con doppio click sul blocco) -->
+  <div class="modal-backdrop" id="noteModalBackdrop">
+    <div class="modal" role="dialog" aria-modal="true">
+      <div class="modal-header">Nota</div>
+      <div class="modal-body">
+        <input
+          type="text"
+          id="noteModalInput"
+          class="modal-input"
+          autocomplete="off"
+        />
+        <div class="modal-actions">
+          <button class="modal-btn" id="noteModalCancelBtn" type="button">Annulla</button>
+          <button class="modal-btn modal-btn-primary" id="noteModalOkBtn" type="button">OK</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pannello impostazioni apribile dal pulsante ⚙ nel footer -->
+  <section class="settings-bar" id="settingsBar">
+    <div class="setting-row">
+      <span>Shortcut invio selezione:</span>
+      <button class="shortcut-btn" id="shortcutBtn" title="Clicca per scegliere una shortcut libera">Alt+A</button>
+    </div>
+    <label class="setting-label">
+      <input type="checkbox" id="chkHtmlToMd" checked />
+      <span>Converti HTML in Markdown (link, titoli, liste, grassetto)</span>
+    </label>
+    <label class="setting-label">
+      <input type="checkbox" id="chkAskBlockNote" />
+      <span>Mostra popup nota quando copi dalla pagina (opzionale)</span>
+    </label>
+  </section>
+
+  <footer class="footer">
+    <div class="footer-left">
+      <span id="charCount">0 car.</span>
+      <span>·</span>
+      <span id="shortcutHint">Shortcut: Alt+A</span>
+    </div>
+    <div class="footer-actions">
+      <button class="icon-btn" id="copyBtn">Copia</button>
+      <button class="icon-btn" id="downloadBtn" title="Salva il file Markdown scegliendo la cartella">Esporta .md</button>
+      <button class="icon-btn" id="clearBtn">Svuota</button>
+      <button class="icon-btn" id="settingsBtn" title="Impostazioni">⚙</button>
+    </div>
+  </footer>
+
+  <script src="sidebar.js"></script>
+</body>
+</html>
