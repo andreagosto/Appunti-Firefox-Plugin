@@ -1,0 +1,121 @@
+{
+  "extName": {
+    "message": "Appunti - Foglio Rapido"
+  },
+  "extDescription": {
+    "message": "Prendi velocemente appunti nella Sidebar di Firefox. Seleziona testo e invialo con una shortcut nel foglio appunti, con fonti univoche in testa, conversione HTML -> Markdown e nota opzionale per ogni blocco."
+  },
+  "browserActionTitle": {
+    "message": "Apri/Chiudi Sidebar Appunti"
+  },
+  "sidebarTitle": {
+    "message": "Appunti"
+  },
+  "commandAppendDescription": {
+    "message": "Invia il testo selezionato agli appunti"
+  },
+  "contextMenuAppend": {
+    "message": "Invia selezione agli Appunti"
+  },
+  "sourcesAriaLabel": {
+    "message": "Fonti univoche"
+  },
+  "removeSourceTitle": {
+    "message": "Rimuovi fonte"
+  },
+  "sourcesMarkdownHeading": {
+    "message": "Fonti"
+  },
+  "editorPlaceholder": {
+    "message": "Foglio bianco per i tuoi appunti...\n\n• Seleziona testo sul sito e premi Alt+A (o la tua shortcut libera) per aggiungerlo in fondo.\n• Fai doppio click su qualsiasi blocco incollato per aggiungere o modificare una nota."
+  },
+  "noteModalTitle": {
+    "message": "Nota"
+  },
+  "btnCancel": {
+    "message": "Annulla"
+  },
+  "btnOk": {
+    "message": "OK"
+  },
+  "notePrefix": {
+    "message": "nota: "
+  },
+  "noteMarkdownKeyword": {
+    "message": "nota"
+  },
+  "settingShortcutLabel": {
+    "message": "Shortcut invio selezione:"
+  },
+  "settingShortcutTitle": {
+    "message": "Clicca per scegliere una shortcut libera"
+  },
+  "settingRecordingShortcut": {
+    "message": "Premi tasti... (Esc)"
+  },
+  "settingHtmlToMd": {
+    "message": "Converti HTML in Markdown (link, titoli, liste, grassetto)"
+  },
+  "settingAskBlockNote": {
+    "message": "Mostra popup nota quando copi dalla pagina (opzionale)"
+  },
+  "charCountSuffix": {
+    "message": "car."
+  },
+  "shortcutHintPrefix": {
+    "message": "Shortcut:"
+  },
+  "btnCopy": {
+    "message": "Copia"
+  },
+  "btnExportMd": {
+    "message": "Esporta .md"
+  },
+  "btnExportMdTitle": {
+    "message": "Salva il file Markdown scegliendo la cartella"
+  },
+  "btnClear": {
+    "message": "Svuota"
+  },
+  "btnSettingsTitle": {
+    "message": "Impostazioni"
+  },
+  "toastAddedBottom": {
+    "message": "Aggiunto in fondo!"
+  },
+  "toastNoteSaved": {
+    "message": "Nota salvata!"
+  },
+  "toastNoteRemoved": {
+    "message": "Nota rimossa"
+  },
+  "toastShortcutSet": {
+    "message": "Shortcut impostata: $SHORTCUT$",
+    "placeholders": {
+      "shortcut": {
+        "content": "$1"
+      }
+    }
+  },
+  "toastCopied": {
+    "message": "Appunti e fonti copiati!"
+  },
+  "toastCopyError": {
+    "message": "Errore copia"
+  },
+  "toastExportStarted": {
+    "message": "Esportazione avviata"
+  },
+  "toastDownloaded": {
+    "message": "File .md scaricato!"
+  },
+  "toastCleared": {
+    "message": "Foglio svuotato"
+  },
+  "confirmClear": {
+    "message": "Vuoi davvero svuotare tutto il foglio degli appunti e le fonti?"
+  },
+  "defaultFilenamePrefix": {
+    "message": "appunti"
+  }
+}

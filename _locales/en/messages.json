@@ -1,0 +1,121 @@
+{
+  "extName": {
+    "message": "Appunti - Quick Notes Sidebar"
+  },
+  "extDescription": {
+    "message": "Quickly take notes in Firefox's Sidebar. Select text on any webpage and send it with a shortcut, featuring unique source links, HTML to Markdown conversion, and optional per-block personal notes."
+  },
+  "browserActionTitle": {
+    "message": "Toggle Notes Sidebar"
+  },
+  "sidebarTitle": {
+    "message": "Notes"
+  },
+  "commandAppendDescription": {
+    "message": "Send selected text to notes"
+  },
+  "contextMenuAppend": {
+    "message": "Send selection to Notes"
+  },
+  "sourcesAriaLabel": {
+    "message": "Unique sources"
+  },
+  "removeSourceTitle": {
+    "message": "Remove source"
+  },
+  "sourcesMarkdownHeading": {
+    "message": "Sources"
+  },
+  "editorPlaceholder": {
+    "message": "Blank sheet for your notes...\n\n• Select text on any website and press Alt+A (or your custom shortcut) to append it here.\n• Double-click on any pasted block to add or edit a personal note."
+  },
+  "noteModalTitle": {
+    "message": "Note"
+  },
+  "btnCancel": {
+    "message": "Cancel"
+  },
+  "btnOk": {
+    "message": "OK"
+  },
+  "notePrefix": {
+    "message": "note: "
+  },
+  "noteMarkdownKeyword": {
+    "message": "note"
+  },
+  "settingShortcutLabel": {
+    "message": "Send selection shortcut:"
+  },
+  "settingShortcutTitle": {
+    "message": "Click to set a custom shortcut"
+  },
+  "settingRecordingShortcut": {
+    "message": "Press keys... (Esc)"
+  },
+  "settingHtmlToMd": {
+    "message": "Convert HTML to Markdown (links, headings, lists, bold)"
+  },
+  "settingAskBlockNote": {
+    "message": "Show note popup when copying from page (optional)"
+  },
+  "charCountSuffix": {
+    "message": "chars"
+  },
+  "shortcutHintPrefix": {
+    "message": "Shortcut:"
+  },
+  "btnCopy": {
+    "message": "Copy"
+  },
+  "btnExportMd": {
+    "message": "Export .md"
+  },
+  "btnExportMdTitle": {
+    "message": "Save Markdown file choosing destination folder"
+  },
+  "btnClear": {
+    "message": "Clear"
+  },
+  "btnSettingsTitle": {
+    "message": "Settings"
+  },
+  "toastAddedBottom": {
+    "message": "Added to notes!"
+  },
+  "toastNoteSaved": {
+    "message": "Note saved!"
+  },
+  "toastNoteRemoved": {
+    "message": "Note removed"
+  },
+  "toastShortcutSet": {
+    "message": "Shortcut set: $SHORTCUT$",
+    "placeholders": {
+      "shortcut": {
+        "content": "$1"
+      }
+    }
+  },
+  "toastCopied": {
+    "message": "Notes and sources copied!"
+  },
+  "toastCopyError": {
+    "message": "Copy error"
+  },
+  "toastExportStarted": {
+    "message": "Export started"
+  },
+  "toastDownloaded": {
+    "message": ".md file downloaded!"
+  },
+  "toastCleared": {
+    "message": "Notes cleared"
+  },
+  "confirmClear": {
+    "message": "Do you really want to clear all notes and sources?"
+  },
+  "defaultFilenamePrefix": {
+    "message": "notes"
+  }
+}

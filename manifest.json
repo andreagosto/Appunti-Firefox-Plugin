@@ -1,8 +1,9 @@
 {
   "manifest_version": 2,
-  "name": "Appunti - Foglio Rapido",
-  "version": "1.1.0",
-  "description": "Prendi velocemente appunti nella Sidebar di Firefox. Seleziona testo e invialo con una shortcut nel foglio appunti, con fonti univoche in testa, conversione HTML -> Markdown e nota opzionale per ogni blocco.",
+  "default_locale": "en",
+  "name": "__MSG_extName__",
+  "version": "1.2.0",
+  "description": "__MSG_extDescription__",
   "homepage_url": "https://github.com/andreagosto/Appunti-Firefox-Plugin",
   "icons": {
     "48": "icons/icon.svg",
@@ -20,10 +21,10 @@
   },
   "browser_action": {
     "default_icon": "icons/icon.svg",
-    "default_title": "Apri/Chiudi Sidebar Appunti"
+    "default_title": "__MSG_browserActionTitle__"
   },
   "sidebar_action": {
-    "default_title": "Appunti",
+    "default_title": "__MSG_sidebarTitle__",
     "default_panel": "sidebar/sidebar.html",
     "default_icon": "icons/icon.svg"
   },
@@ -42,7 +43,7 @@
       "suggested_key": {
         "default": "Alt+A"
       },
-      "description": "Invia il testo selezionato agli appunti"
+      "description": "__MSG_commandAppendDescription__"
     }
   },
   "browser_specific_settings": {

@@ -64,6 +64,15 @@
     return pressed.toLowerCase() === shortcutStr.trim().toLowerCase();
   }
 
+  function t(key, fallback) {
+    try {
+      const msg = browser.i18n.getMessage(key);
+      return msg || fallback;
+    } catch (_) {
+      return fallback;
+    }
+  }
+
   function ensurePromptDom() {
     if (promptHost) return;
 
@@ -162,7 +171,7 @@
 
       <div class="backdrop notranslate" id="backdrop" translate="no">
         <div class="modal notranslate" role="dialog" aria-modal="true" translate="no">
-          <div class="modal-header">Nota</div>
+          <div class="modal-header">${t("noteModalTitle", "Note")}</div>
           <div class="modal-body">
             <input
               type="text"
@@ -171,8 +180,8 @@
               autocomplete="off"
             />
             <div class="actions">
-              <button class="btn" id="cancelBtn" type="button">Annulla</button>
-              <button class="btn btn-primary" id="confirmBtn" type="button">OK</button>
+              <button class="btn" id="cancelBtn" type="button">${t("btnCancel", "Cancel")}</button>
+              <button class="btn btn-primary" id="confirmBtn" type="button">${t("btnOk", "OK")}</button>
             </div>
           </div>
         </div>

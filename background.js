@@ -96,9 +96,18 @@
     }
   });
 
+  function t(key, fallback) {
+    try {
+      const msg = browser.i18n.getMessage(key);
+      return msg || fallback;
+    } catch (_) {
+      return fallback;
+    }
+  }
+
   browser.contextMenus.create({
     id: "appunti-append-selection",
-    title: "Invia selezione agli Appunti",
+    title: t("contextMenuAppend", "Send selection to Notes"),
     contexts: ["selection"]
   });
 
@@ -107,7 +116,8 @@
     if (!cleanNote) {
       return content;
     }
-    return `${content}\n\n**nota:** *${cleanNote}*`;
+    const kw = t("noteMarkdownKeyword", "note");
+    return `${content}\n\n**${kw}:** *${cleanNote}*`;
   }
 
   /**

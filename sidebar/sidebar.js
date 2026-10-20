@@ -1,11 +1,12 @@
 /**
- * Script per la Sidebar nativa di Firefox.
- * - Visualizza in alto le fonti univoche (una riga per fonte, solo href troncato, background staccato).
- * - Ogni nuovo blocco copiato dalla pagina viene sempre aggiunto in fondo agli altri.
- * - Le note sono renderizzate con "nota:" in bold seguito dal testo in italic.
- * - Al mouseover sopra un blocco o una nota si evidenziano leggermente entrambi.
- * - Doppio click su un blocco (o direttamente su una nota) apre il popup minimale "Nota" (Annulla / OK).
- * - Permette di esportare il file di note (.md) aprendo la finestra per scegliere la cartella di destinazione.
+ * Sidebar script for Appunti - Quick Notes.
+ * - Full i18n support (English & Italian via browser.i18n).
+ * - Displays unique sources at the top (single line per source, truncated href, distinct background).
+ * - Appends every newly captured block at the bottom.
+ * - Renders personal notes with "note:" / "nota:" in bold followed by italic text.
+ * - Subtle neutral highlight on mouseover for both block and note.
+ * - Double-click on any block (or note) opens the minimal "Note" modal (Cancel / OK).
+ * - Exports Markdown (.md) opening the system Save As folder picker.
  */
 (function () {
   "use strict";
@@ -43,6 +44,44 @@
     downloadBtn: document.getElementById("downloadBtn"),
     clearBtn: document.getElementById("clearBtn")
   };
+
+  function t(key, substitutions, fallback = "") {
+    try {
+      const msg = browser.i18n.getMessage(key, substitutions);
+      return msg || fallback;
+    } catch (_) {
+      return fallback;
+    }
+  }
+
+  function applyLocalization() {
+    document.querySelectorAll("[data-i18n]").forEach((el) => {
+      const key = el.getAttribute("data-i18n");
+      const val = t(key);
+      if (val) el.textContent = val;
+    });
+
+    document.querySelectorAll("[data-i18n-title]").forEach((el) => {
+      const key = el.getAttribute("data-i18n-title");
+      const val = t(key);
+      if (val) el.setAttribute("title", val);
+    });
+
+    document.querySelectorAll("[data-i18n-placeholder]").forEach((el) => {
+      const key = el.getAttribute("data-i18n-placeholder");
+      const val = t(key);
+      if (val) el.setAttribute("data-placeholder", val);
+    });
+
+    document.querySelectorAll("[data-i18n-aria-label]").forEach((el) => {
+      const key = el.getAttribute("data-i18n-aria-label");
+      const val = t(key);
+      if (val) el.setAttribute("aria-label", val);
+    });
+
+    const notePrefix = t("notePrefix", null, "note: ");
+    document.documentElement.style.setProperty("--note-prefix", JSON.stringify(notePrefix));
+  }
 
   function eventToShortcutString(e) {
     const modifiers = [];
@@ -94,20 +133,20 @@
   }
 
   /**
-   * Ricostruisce i nodi DOM dell'editor a partire dal testo Markdown salvato,
-   * usando esclusivamente DOM API sicure (nessun innerHTML).
+   * Reconstructs the visual editor DOM nodes from saved Markdown text
+   * using safe DOM APIs (supports both `**note:**` and `**nota:**` and legacy ```nota```).
    */
   function renderMarkdownIntoEditor(rawText) {
     els.noteEditor.replaceChildren();
     if (!rawText || !rawText.trim()) return;
 
-    const parts = rawText.split(/(```nota\n[\s\S]*?\n```|\*\*nota:\*\*\s*\*[^\n]+\*)/g);
+    const parts = rawText.split(/(```nota\n[\s\S]*?\n```|\*\*(?:nota|note):\*\*\s*\*[^\n]+\*)/g);
     const fragment = document.createDocumentFragment();
 
     for (const part of parts) {
       if (!part) continue;
       const legacyMatch = part.match(/^```nota\n([\s\S]*?)\n```$/);
-      const inlineMdMatch = part.match(/^\*\*nota:\*\*\s*\*([\s\S]*?)\*$/);
+      const inlineMdMatch = part.match(/^\*\*(?:nota|note):\*\*\s*\*([\s\S]*?)\*$/);
       if (legacyMatch || inlineMdMatch) {
         const noteContent = (legacyMatch ? legacyMatch[1] : inlineMdMatch[1]).trim();
         if (noteContent) {
@@ -128,12 +167,13 @@
 
   function serializeEditorToMarkdown() {
     const blocks = [];
+    const kw = t("noteMarkdownKeyword", null, "note");
 
     function walkNodes(parent) {
       for (const node of Array.from(parent.childNodes)) {
         if (node.nodeType === Node.TEXT_NODE) {
-          const t = (node.nodeValue || "").trim();
-          if (t) blocks.push(t);
+          const tVal = (node.nodeValue || "").trim();
+          if (tVal) blocks.push(tVal);
           continue;
         }
         if (node.nodeType !== Node.ELEMENT_NODE) continue;
@@ -141,7 +181,7 @@
         if (node.classList.contains("appunti-user-note")) {
           const noteText = (node.getAttribute("data-note") || node.textContent || "").trim();
           if (noteText) {
-            blocks.push(`**nota:** *${noteText}*`);
+            blocks.push(`**${kw}:** *${noteText}*`);
           }
           continue;
         }
@@ -150,8 +190,8 @@
           if (node.querySelector && node.querySelector(".appunti-user-note")) {
             walkNodes(node);
           } else {
-            const t = (node.innerText || node.textContent || "").trim();
-            if (t) blocks.push(t);
+            const tVal = (node.innerText || node.textContent || "").trim();
+            if (tVal) blocks.push(tVal);
           }
           continue;
         }
@@ -165,10 +205,15 @@
     return blocks.join("\n\n");
   }
 
+  function updateCharCountDisplay(len) {
+    const suffix = t("charCountSuffix", null, "chars");
+    els.charCount.textContent = `${len} ${suffix}`;
+  }
+
   function updateStatsAndPersist() {
     const md = serializeEditorToMarkdown();
     state.noteText = md;
-    els.charCount.textContent = `${md.length} car.`;
+    updateCharCountDisplay(md.length);
 
     browser.storage.local.set({
       noteText: md
@@ -200,6 +245,7 @@
     }
 
     els.sourcesSection.classList.add("has-sources");
+    const removeTitle = t("removeSourceTitle", null, "Remove source");
 
     sources.forEach((src, idx) => {
       const url = typeof src === "string" ? src : src.url;
@@ -220,7 +266,7 @@
       removeBtn.className = "source-remove-btn";
       removeBtn.type = "button";
       removeBtn.textContent = "✕";
-      removeBtn.title = "Rimuovi fonte";
+      removeBtn.title = removeTitle;
       removeBtn.addEventListener("click", (e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -242,13 +288,14 @@
       return body;
     }
 
+    const heading = t("sourcesMarkdownHeading", null, "Sources");
     const sourceLines = sources
       .map((s) => (typeof s === "string" ? s : s.url))
       .filter(Boolean)
       .map((url) => `- <${url}>`)
       .join("\n");
 
-    return `## Fonti\n${sourceLines}\n\n---\n\n${body}`;
+    return `## ${heading}\n${sourceLines}\n\n---\n\n${body}`;
   }
 
   function openNoteModalForElement(targetEl) {
@@ -319,7 +366,7 @@
 
     closeBlockNoteModal();
     updateStatsAndPersist();
-    showToast(noteVal ? "Nota salvata!" : "Nota rimossa");
+    showToast(noteVal ? t("toastNoteSaved", null, "Note saved!") : t("toastNoteRemoved", null, "Note removed"));
   }
 
   function renderStateFromStorage() {
@@ -333,9 +380,10 @@
     }
 
     const mdLen = (state.noteText || "").length;
-    els.charCount.textContent = `${mdLen} car.`;
+    updateCharCountDisplay(mdLen);
     els.shortcutBtn.textContent = state.customShortcut || "Alt+A";
-    els.shortcutHint.textContent = `Shortcut: ${state.customShortcut || "Alt+A"}`;
+    const hintPrefix = t("shortcutHintPrefix", null, "Shortcut:");
+    els.shortcutHint.textContent = `${hintPrefix} ${state.customShortcut || "Alt+A"}`;
     els.chkHtmlToMd.checked = Boolean(state.convertHtmlToMd);
     els.chkAskBlockNote.checked = Boolean(state.askBlockNote);
   }
@@ -394,7 +442,7 @@
 
     const md = serializeEditorToMarkdown();
     state.noteText = md;
-    els.charCount.textContent = `${md.length} car.`;
+    updateCharCountDisplay(md.length);
 
     browser.storage.local
       .set({
@@ -416,7 +464,7 @@
         renderSourcesList();
       }
       appendSnippetAtBottom(content, userNote);
-      showToast("Aggiunto in fondo!");
+      showToast(t("toastAddedBottom", null, "Added to notes!"));
       return Promise.resolve({ handled: true });
     }
 
@@ -448,7 +496,7 @@
     isRecordingShortcut = !isRecordingShortcut;
     if (isRecordingShortcut) {
       els.shortcutBtn.classList.add("recording");
-      els.shortcutBtn.textContent = "Premi tasti... (Esc)";
+      els.shortcutBtn.textContent = t("settingRecordingShortcut", null, "Press keys... (Esc)");
     } else {
       els.shortcutBtn.classList.remove("recording");
       els.shortcutBtn.textContent = state.customShortcut || "Alt+A";
@@ -475,7 +523,7 @@
       isRecordingShortcut = false;
       els.shortcutBtn.classList.remove("recording");
       browser.storage.local.set({ customShortcut: combo });
-      showToast(`Shortcut impostata: ${combo}`);
+      showToast(t("toastShortcutSet", [combo], `Shortcut: ${combo}`));
     },
     true
   );
@@ -492,9 +540,9 @@
     const fullContent = buildFullExportMarkdown();
     try {
       await navigator.clipboard.writeText(fullContent);
-      showToast("Appunti e fonti copiati!");
+      showToast(t("toastCopied", null, "Notes and sources copied!"));
     } catch (_) {
-      showToast("Errore copia");
+      showToast(t("toastCopyError", null, "Copy error"));
     }
   });
 
@@ -503,7 +551,8 @@
     const blob = new Blob([fullContent], { type: "text/markdown;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const dateStr = new Date().toISOString().slice(0, 10);
-    const defaultFilename = `appunti-${dateStr}.md`;
+    const prefix = t("defaultFilenamePrefix", null, "notes");
+    const defaultFilename = `${prefix}-${dateStr}.md`;
 
     try {
       if (browser.downloads && browser.downloads.download) {
@@ -512,16 +561,16 @@
           filename: defaultFilename,
           saveAs: true
         });
-        showToast("Esportazione avviata");
+        showToast(t("toastExportStarted", null, "Export started"));
       } else {
         const a = document.createElement("a");
         a.href = url;
         a.download = defaultFilename;
         a.click();
-        showToast("File .md scaricato!");
+        showToast(t("toastDownloaded", null, ".md file downloaded!"));
       }
     } catch (_) {
-      // Annullato dall'utente
+      // Cancelled by user
     } finally {
       setTimeout(() => URL.revokeObjectURL(url), 10000);
     }
@@ -529,13 +578,13 @@
 
   els.clearBtn.addEventListener("click", () => {
     if (!els.noteEditor.textContent.trim() && (!state.sources || state.sources.length === 0)) return;
-    if (confirm("Vuoi davvero svuotare tutto il foglio degli appunti e le fonti?")) {
+    if (confirm(t("confirmClear", null, "Do you really want to clear all notes and sources?"))) {
       els.noteEditor.replaceChildren();
       browser.storage.local.set({
         noteText: "",
         sources: []
       });
-      showToast("Foglio svuotato");
+      showToast(t("toastCleared", null, "Notes cleared"));
     }
   });
 
@@ -546,6 +595,8 @@
     }
     renderStateFromStorage();
   });
+
+  applyLocalization();
 
   browser.storage.local.get(DEFAULT_STATE).then((stored) => {
     state = { ...DEFAULT_STATE, ...stored };
