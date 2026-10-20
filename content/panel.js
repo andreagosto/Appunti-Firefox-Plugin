@@ -97,128 +97,151 @@
       "all: initial; position: fixed; inset: 0; z-index: 2147483647; pointer-events: none;";
     promptShadow = promptHost.attachShadow({ mode: "open" });
 
-    const titleLabel = t("noteModalTitle", "Nota").replace(/"/g, "&quot;");
-    const cancelLabel = t("btnCancel", "Annulla").replace(/"/g, "&quot;");
-    const okLabel = t("btnOk", "OK").replace(/"/g, "&quot;");
+    const titleLabel = t("noteModalTitle", "Nota");
+    const cancelLabel = t("btnCancel", "Annulla");
+    const okLabel = t("btnOk", "OK");
 
-    // Usiamo ::before { content: attr(data-label) } per tutti i testi dell'interfaccia:
-    // in questo modo non esistono TextNode nel DOM e Google Translate non può alterarli!
-    promptShadow.innerHTML = `
-      <style>
-        :host {
-          all: initial;
-          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        }
-        * {
-          box-sizing: border-box;
-        }
-        .backdrop {
-          position: fixed;
-          inset: 0;
-          background: rgba(15, 23, 42, 0.25);
-          display: none;
-          align-items: flex-start;
-          justify-content: center;
-          padding-top: 16vh;
-          pointer-events: auto;
-        }
-        .backdrop.open {
-          display: flex;
-        }
-        .modal {
-          width: min(360px, 90vw);
-          background: #ffffff;
-          border: 1px solid #d1d5db;
-          border-radius: 9px;
-          box-shadow: 0 12px 28px rgba(15, 23, 42, 0.22);
-          overflow: hidden;
-          color: #1f2937;
-        }
-        .modal-header {
-          padding: 8px 12px;
-          background: #f3f4f6;
-          border-bottom: 1px solid #e5e7eb;
-          font-size: 13px;
-          font-weight: 700;
-          color: #1f2937;
-        }
-        .modal-header::before {
-          content: attr(data-label);
-        }
-        .modal-body {
-          padding: 10px 12px;
-          display: flex;
-          flex-direction: column;
-          gap: 10px;
-        }
-        .note-input {
-          width: 100%;
-          border: 1px solid #d1d5db;
-          border-radius: 6px;
-          padding: 7px 9px;
-          font-size: 13px;
-          font-family: inherit;
-          color: #111827;
-          background: #ffffff;
-          outline: none;
-        }
-        .note-input:focus {
-          border-color: #6b7280;
-          box-shadow: 0 0 0 2px rgba(107, 114, 128, 0.2);
-        }
-        .actions {
-          display: flex;
-          justify-content: flex-end;
-          gap: 6px;
-        }
-        .btn {
-          border-radius: 6px;
-          padding: 5px 12px;
-          font-size: 12px;
-          font-weight: 600;
-          cursor: pointer;
-          border: 1px solid #d1d5db;
-          background: #ffffff;
-          color: #374151;
-        }
-        .btn::before {
-          content: attr(data-label);
-        }
-        .btn-primary {
-          background: #374151;
-          border-color: #1f2937;
-          color: #ffffff;
-        }
-        .btn-primary:hover {
-          background: #1f2937;
-        }
-      </style>
-
-      <div class="backdrop notranslate" id="backdrop" translate="no">
-        <div class="modal notranslate" role="dialog" aria-modal="true" translate="no">
-          <div class="modal-header" data-label="${titleLabel}"></div>
-          <div class="modal-body">
-            <input
-              type="text"
-              class="note-input"
-              id="noteInput"
-              autocomplete="off"
-            />
-            <div class="actions">
-              <button class="btn" id="cancelBtn" type="button" data-label="${cancelLabel}"></button>
-              <button class="btn btn-primary" id="confirmBtn" type="button" data-label="${okLabel}"></button>
-            </div>
-          </div>
-        </div>
-      </div>
+    const styleEl = document.createElement("style");
+    styleEl.textContent = `
+      :host {
+        all: initial;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      .backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.25);
+        display: none;
+        align-items: flex-start;
+        justify-content: center;
+        padding-top: 16vh;
+        pointer-events: auto;
+      }
+      .backdrop.open {
+        display: flex;
+      }
+      .modal {
+        width: min(360px, 90vw);
+        background: #ffffff;
+        border: 1px solid #d1d5db;
+        border-radius: 9px;
+        box-shadow: 0 12px 28px rgba(15, 23, 42, 0.22);
+        overflow: hidden;
+        color: #1f2937;
+      }
+      .modal-header {
+        padding: 8px 12px;
+        background: #f3f4f6;
+        border-bottom: 1px solid #e5e7eb;
+        font-size: 13px;
+        font-weight: 700;
+        color: #1f2937;
+      }
+      .modal-header::before {
+        content: attr(data-label);
+      }
+      .modal-body {
+        padding: 10px 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .note-input {
+        width: 100%;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        padding: 7px 9px;
+        font-size: 13px;
+        font-family: inherit;
+        color: #111827;
+        background: #ffffff;
+        outline: none;
+      }
+      .note-input:focus {
+        border-color: #6b7280;
+        box-shadow: 0 0 0 2px rgba(107, 114, 128, 0.2);
+      }
+      .actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 6px;
+      }
+      .btn {
+        border-radius: 6px;
+        padding: 5px 12px;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        border: 1px solid #d1d5db;
+        background: #ffffff;
+        color: #374151;
+      }
+      .btn::before {
+        content: attr(data-label);
+      }
+      .btn-primary {
+        background: #374151;
+        border-color: #1f2937;
+        color: #ffffff;
+      }
+      .btn-primary:hover {
+        background: #1f2937;
+      }
     `;
 
-    document.documentElement.appendChild(promptHost);
+    const backdrop = document.createElement("div");
+    backdrop.className = "backdrop notranslate";
+    backdrop.id = "backdrop";
+    backdrop.setAttribute("translate", "no");
 
-    const backdrop = promptShadow.getElementById("backdrop");
-    const noteInput = promptShadow.getElementById("noteInput");
-    const cancelBtn = promptShadow.getElementById("cancelBtn");
-    const confirmBtn = promptShadow.getElementById("confirmBtn");
+    const modal = document.createElement("div");
+    modal.className = "modal notranslate";
+    modal.setAttribute("role", "dialog");
+    modal.setAttribute("aria-modal", "true");
+    modal.setAttribute("translate", "no");
+
+    const modalHeader = document.createElement("div");
+    modalHeader.className = "modal-header";
+    modalHeader.setAttribute("data-label", titleLabel);
+
+    const modalBody = document.createElement("div");
+    modalBody.className = "modal-body";
+
+    const noteInput = document.createElement("input");
+    noteInput.type = "text";
+    noteInput.className = "note-input";
+    noteInput.id = "noteInput";
+    noteInput.setAttribute("autocomplete", "off");
+
+    const actions = document.createElement("div");
+    actions.className = "actions";
+
+    const cancelBtn = document.createElement("button");
+    cancelBtn.className = "btn";
+    cancelBtn.id = "cancelBtn";
+    cancelBtn.type = "button";
+    cancelBtn.setAttribute("data-label", cancelLabel);
+
+    const confirmBtn = document.createElement("button");
+    confirmBtn.className = "btn btn-primary";
+    confirmBtn.id = "confirmBtn";
+    confirmBtn.type = "button";
+    confirmBtn.setAttribute("data-label", okLabel);
+
+    actions.appendChild(cancelBtn);
+    actions.appendChild(confirmBtn);
+    modalBody.appendChild(noteInput);
+    modalBody.appendChild(actions);
+    modal.appendChild(modalHeader);
+    modal.appendChild(modalBody);
+    backdrop.appendChild(modal);
+
+    promptShadow.appendChild(styleEl);
+    promptShadow.appendChild(backdrop);
+    document.documentElement.appendChild(promptHost);
 
     function closePrompt() {
       isPromptOpen = false;
